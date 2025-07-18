@@ -2,18 +2,17 @@ from typing import Tuple
 
 import requests
 
-from tickets.constants import TRELLO_API_KEY, TRELLO_API_TOKEN, TRELLO_DEFAULT_LIST_ID
-from tickets.models import Ticket
+from core.models import CoreSettings
+from tickets.models import Ticket, TrelloLabel
 
 
-def trello_create_ticket(ticket: Ticket, trello_list_id: str = TRELLO_DEFAULT_LIST_ID) -> Tuple[str, str]:
+def trello_create_ticket(ticket: Ticket, core_settings: CoreSettings) -> Tuple[str, str]:
     """
     Create a new Trello card in the specified Trello list using the given ticket information.
 
     Args:
         ticket (Ticket): The ticket object containing title and description to create the Trello card.
-        trello_list_id (str, optional): The ID of the Trello list where the card will be created.
-        Defaults to TRELLO_DEFAULT_LIST_ID.
+        core_settings (CoreSettings): The core settings provide API credentials for trello.
 
     Returns:
         Tuple[str, str]: A tuple containing the Trello card ID and URL. Returns empty strings if an exception occurs.
@@ -23,10 +22,10 @@ def trello_create_ticket(ticket: Ticket, trello_list_id: str = TRELLO_DEFAULT_LI
             url="https://api.trello.com/1/cards",
             headers={"Accept": "application/json"},
             params={
-                "idList": trello_list_id,
-                "key": TRELLO_API_KEY,
-                "token": TRELLO_API_TOKEN,
-                "name": ticket.title,
+                "idList": core_settings.trello_list_id,
+                "key": core_settings.trello_api_key,
+                "token": core_settings.trello_api_token,
+                "name": f"{ticket.title} | Ticket #{ticket.pk} | Module: {ticket.module}",
                 "desc": ticket.description,
             },
         ).json()
@@ -36,3 +35,20 @@ def trello_create_ticket(ticket: Ticket, trello_list_id: str = TRELLO_DEFAULT_LI
         return "", ""
 
     return data.get("id"), data.get("url")
+
+
+def trello_add_label(ticket: Ticket, core_settings: CoreSettings):
+    trello_label = TrelloLabel.objects.filter(module=ticket.module).first()
+
+    if not trello_label:
+        return
+
+    requests.post(
+        url=f"https://api.trello.com/1/cards/{ticket.trello_ticket_id}/idLabels",
+        headers={"Accept": "application/json"},
+        params={
+            "key": core_settings.trello_api_key,
+            "token": core_settings.trello_api_token,
+            "value": trello_label.trello_label_id,
+        },
+    )

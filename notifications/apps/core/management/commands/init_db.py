@@ -42,11 +42,11 @@ class Command(BaseCommand):
                 "reingeschaut aber irgendwie macht das ja so keinen SInn.</p>",
                 "module": "sellermatch",
                 "last_joblog_log": "",
-                "last_joblog_message": "Source Sync Metadata started..."
-                "    Sync ok."
-                "        Manufacturers (+0/-0)"
-                "        Shipping      (+0/-0)"
-                "        Markets       (+0/-0)"
+                "last_joblog_message": "Source Sync Metadata started...\n"
+                "    Sync ok.\n"
+                "        Manufacturers (+0/-0)\n"
+                "        Shipping      (+0/-0)\n"
+                "        Markets       (+0/-0)\n"
                 "        Users         (+0/-0)",
                 "last_joblog_stacktrace": "",
             },

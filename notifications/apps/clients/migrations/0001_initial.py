@@ -4,25 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Client',
+            name="Client",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, null=True)),
-                ('updated_at', models.DateTimeField(auto_now=True, null=True)),
-                ('name', models.CharField(max_length=100, verbose_name='Name')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("created_at", models.DateTimeField(auto_now_add=True, null=True)),
+                ("updated_at", models.DateTimeField(auto_now=True, null=True)),
+                ("name", models.CharField(max_length=100, verbose_name="Name")),
             ],
             options={
-                'verbose_name': 'Client',
-                'verbose_name_plural': 'Clients',
-                'ordering': ['name'],
+                "verbose_name": "Client",
+                "verbose_name_plural": "Clients",
+                "ordering": ["name"],
             },
         ),
     ]

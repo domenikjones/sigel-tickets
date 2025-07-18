@@ -4,11 +4,12 @@ import requests
 from django.conf import settings
 from django.urls import reverse
 
-from tickets.constants import SLACK_API_HEADERS, SLACK_CHANNEL_ID, SLACK_STATUS_REACTION
+from core.models import CoreSettings
+from tickets.constants import SLACK_STATUS_REACTION
 from tickets.models import Ticket
 
 
-def slack_update_ticket(ticket: Ticket):
+def slack_update_message(ticket: Ticket, core_settings: CoreSettings):
     """
     Update the Slack message for a given ticket.
 
@@ -17,18 +18,20 @@ def slack_update_ticket(ticket: Ticket):
 
     Args:
         ticket (Ticket): The ticket object containing Slack-related information and status.
+        core_settings (CoreSettings): The core settings provide API credentials for trello.
     """
-    slack_remove_ticket_reaction(ticket)
-    slack_update_ticket_reaction(ticket)
-    slack_update_ticket_status(ticket)
+    slack_remove_message_reaction(ticket=ticket, core_settings=core_settings)
+    slack_update_message_reaction(ticket=ticket, core_settings=core_settings)
+    slack_update_message_status(ticket=ticket, core_settings=core_settings)
 
 
-def slack_create_ticket(ticket: Ticket) -> Tuple[str, str]:
+def slack_create_message(ticket: Ticket, core_settings: CoreSettings) -> Tuple[str, str]:
     """
     Post a new ticket message to Slack and add a status-specific reaction.
 
     Args:
         ticket (Ticket): The ticket object containing details to be posted.
+        core_settings (CoreSettings): The core settings provide API credentials for trello.
 
     Returns:
         Tuple[str, str]: A tuple containing the Slack message timestamp and channel ID.
@@ -36,13 +39,16 @@ def slack_create_ticket(ticket: Ticket) -> Tuple[str, str]:
     try:
         data = requests.post(
             "https://slack.com/api/chat.postMessage",
-            headers=SLACK_API_HEADERS,
+            headers={
+                "Authorization": f"Bearer {core_settings.slack_token}",
+                "Content-Type": "application/json; charset=utf-8",
+            },
             json={
-                "channel": SLACK_CHANNEL_ID,
-                "blocks": slack_ticket_blocks(ticket=ticket),
+                "channel": core_settings.slack_channel_id,
+                "blocks": slack_message_blocks(ticket=ticket),
             },
         ).json()
-        slack_update_ticket_reaction(ticket=ticket)
+        slack_update_message_reaction(ticket=ticket, core_settings=core_settings)
     except requests.exceptions.RequestException as e:
         # todo: do something about it, for example send an email
         print(e)
@@ -51,34 +57,42 @@ def slack_create_ticket(ticket: Ticket) -> Tuple[str, str]:
     return data.get("ts"), data.get("channel")
 
 
-def slack_update_ticket_status(ticket: Ticket):
+def slack_update_message_status(ticket: Ticket, core_settings: CoreSettings):
     """
     Update the Slack message for a given ticket with the latest block content.
 
     Args:
         ticket (Ticket): The ticket object containing Slack channel ID, message timestamp, and ticket details.
+        core_settings (CoreSettings): The core settings provide API credentials for trello.
     """
     requests.post(
         "https://slack.com/api/chat.update",
-        headers=SLACK_API_HEADERS,
+        headers={
+            "Authorization": f"Bearer {core_settings.slack_token}",
+            "Content-Type": "application/json; charset=utf-8",
+        },
         json={
             "channel": ticket.slack_channel_id,
             "ts": ticket.slack_message_ts,
-            "blocks": slack_ticket_blocks(ticket=ticket),
+            "blocks": slack_message_blocks(ticket=ticket),
         },
     )
 
 
-def slack_update_ticket_reaction(ticket: Ticket):
+def slack_update_message_reaction(ticket: Ticket, core_settings: CoreSettings):
     """
     Add a status-specific reaction to a Slack message associated with the given ticket.
 
     Args:
         ticket (Ticket): The ticket object containing Slack channel ID, message timestamp, and status.
+        core_settings (CoreSettings): The core settings provide API credentials for trello.
     """
     requests.post(
         "https://slack.com/api/reactions.add",
-        headers=SLACK_API_HEADERS,
+        headers={
+            "Authorization": f"Bearer {core_settings.slack_token}",
+            "Content-Type": "application/json; charset=utf-8",
+        },
         json={
             "channel": ticket.slack_channel_id,
             "timestamp": ticket.slack_message_ts,
@@ -87,16 +101,20 @@ def slack_update_ticket_reaction(ticket: Ticket):
     )
 
 
-def slack_remove_ticket_reaction(ticket: Ticket):
+def slack_remove_message_reaction(ticket: Ticket, core_settings: CoreSettings):
     """
     Remove all reactions from a Slack message associated with the given ticket.
 
     Args:
         ticket (Ticket): The ticket object containing Slack channel ID and message timestamp.
+        core_settings (CoreSettings): The core settings provide API credentials for trello.
     """
     data = requests.get(
         "https://slack.com/api/reactions.get",
-        headers=SLACK_API_HEADERS,
+        headers={
+            "Authorization": f"Bearer {core_settings.slack_token}",
+            "Content-Type": "application/json; charset=utf-8",
+        },
         params={
             "channel": ticket.slack_channel_id,
             "timestamp": ticket.slack_message_ts,
@@ -108,7 +126,10 @@ def slack_remove_ticket_reaction(ticket: Ticket):
 
         requests.post(
             "https://slack.com/api/reactions.remove",
-            headers=SLACK_API_HEADERS,
+            headers={
+                "Authorization": f"Bearer {core_settings.slack_token}",
+                "Content-Type": "application/json; charset=utf-8",
+            },
             json={
                 "channel": ticket.slack_channel_id,
                 "timestamp": ticket.slack_message_ts,
@@ -117,7 +138,7 @@ def slack_remove_ticket_reaction(ticket: Ticket):
         )
 
 
-def slack_ticket_blocks(ticket: Ticket) -> List[Dict[str, Union[str, dict]]]:
+def slack_message_blocks(ticket: Ticket) -> List[Dict[str, Union[str, dict]]]:
     """
     Generate Slack message blocks for a given ticket, including a link to the Django admin page and client information.
 

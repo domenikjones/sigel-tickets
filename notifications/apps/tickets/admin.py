@@ -1,7 +1,7 @@
 from core.admin import CoreAdmin
 from django.contrib import admin
 
-from tickets.models import Ticket
+from tickets.models import Ticket, TrelloLabel
 
 
 @admin.register(Ticket)
@@ -35,7 +35,19 @@ class TicketAdmin(CoreAdmin):
                 ),
             },
         ),
-        ("Ticket", {"fields": ("module", "title", "description")}),
+        (
+            "Ticket",
+            {
+                "fields": (
+                    "module",
+                    "title",
+                    "description",
+                    "last_joblog_log",
+                    "last_joblog_message",
+                    "last_joblog_stacktrace",
+                )
+            },
+        ),
         (
             "Notifications",
             {
@@ -46,3 +58,8 @@ class TicketAdmin(CoreAdmin):
             },
         ),
     )
+
+
+@admin.register(TrelloLabel)
+class TrelloLabelAdmin(CoreAdmin):
+    list_display = ("module", "trello_label_id", "trello_label_name", "trello_label_color")
