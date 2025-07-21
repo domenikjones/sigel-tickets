@@ -178,7 +178,7 @@ def slack_message_blocks(ticket: Ticket) -> List[Dict[str, Union[str, dict]]]:
                 "text": f"*{ticket.title}*\n"
                 f"Modul: {ticket.module}\n"
                 f"Kunde: {client_name}\n"
-                f"<{client_admin_url}|Kunden ID>: {client_id} - "
+                f"<{client_admin_url}|Kunden ID: {client_id}>- "
                 f"Shard: {ticket.pk} - "
                 f"JTL-Version: {ticket.pk}",
             },

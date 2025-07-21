@@ -53,7 +53,7 @@ class TicketAdmin(CoreAdmin):
             {
                 "fields": (
                     ("trello_ticket_created", "trello_ticket_id", "trello_ticket_url"),
-                    ("slack_notification_sent", "slack_message_ts"),
+                    ("slack_notification_sent", "slack_message_ts", "slack_channel_id"),
                 )
             },
         ),
