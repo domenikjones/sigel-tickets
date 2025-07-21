@@ -150,8 +150,11 @@ def slack_message_blocks(ticket: Ticket) -> List[Dict[str, Union[str, dict]]]:
     """
     django_admin_path = reverse("admin:tickets_ticket_change", args=[ticket.pk])
     django_admin_url = f"{settings.BASE_URL}{django_admin_path}"
-    client_id = ticket.client.pk if ticket.client else "N/A"
-    client_name = ticket.client.name if ticket.client else "N/A"
+    client = ticket.client
+    client_id = client.pk if client else "N/A"
+    client_name = client.name if client else "N/A"
+    client_admin_path = reverse("admin:clients_client_change", args=[client_id]) if client else None
+    client_admin_url = f"{settings.BASE_URL}{client_admin_path}" if client else ""
 
     return [
         {
@@ -175,7 +178,7 @@ def slack_message_blocks(ticket: Ticket) -> List[Dict[str, Union[str, dict]]]:
                 "text": f"*{ticket.title}*\n"
                 f"Modul: {ticket.module}\n"
                 f"Kunde: {client_name}\n"
-                f"Kunden ID: {client_id} - "
+                f"<{client_admin_url}|Kunden ID>: {client_id} - "
                 f"Shard: {ticket.pk} - "
                 f"JTL-Version: {ticket.pk}",
             },

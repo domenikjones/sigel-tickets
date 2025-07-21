@@ -46,16 +46,6 @@ class Ticket(CoreModel):
         return f"Ticket No. {self.ticket_no}"
 
     def save(self, *args, **kwargs):
-        """
-        Override the ticket model's save method to handle Trello and Slack notifications based on the ticket state.
-
-        Saves the model instance. Then sends a Trello ticket creation request if not already created,
-        sends a Slack notification if not already sent, or updates the Slack message if it already exists.
-
-        Args:
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
         # todo: this can maybe be put into pre_save or post_save signals,
         #   for the sake of the coding challenge, we do it before we have saved the model instance.
         #   as we enhance the ticket model instance with trello and slack information, it's probably ok

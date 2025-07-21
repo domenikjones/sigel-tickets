@@ -38,6 +38,20 @@ def trello_create_ticket(ticket: Ticket, core_settings: CoreSettings) -> Tuple[s
 
 
 def trello_add_label(ticket: Ticket, core_settings: CoreSettings):
+    """Adds a Trello label to a card based on the ticket's module.
+
+    This function fetches the appropriate Trello label for the given
+    ticket's module and attaches it to the Trello card via the Trello API.
+    If no label is found for the module, the function returns early
+    without making any API request.
+
+    Args:
+        ticket (Ticket): The ticket object containing module and Trello card ID information.
+        core_settings (CoreSettings): Settings object that includes Trello API credentials.
+
+    Returns:
+        None
+    """
     trello_label = TrelloLabel.objects.filter(module=ticket.module).first()
 
     if not trello_label:
